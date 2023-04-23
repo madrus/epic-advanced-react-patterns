@@ -1,7 +1,8 @@
 .DS_Store
-node_modules
-coverage
-build
+.eslintcache
+.history
 .idea/
 .vscode/
-.eslintcache
+build
+coverage
+node_modules

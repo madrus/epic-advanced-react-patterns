@@ -21,37 +21,25 @@ function Toggle({children}) {
     <ToggleContext.Provider value={value}>{children}</ToggleContext.Provider>
   )
 }
-// return React.Children.map(children, child => {
-//   return typeof child.type === 'string'
-//     ? child
-//     : React.cloneElement(child, {on, toggle})
-// })
 
-// 🐨 we'll still get the children from props (as it's passed to us by the
-// developers using our component), but we'll get `on` implicitly from
-// ToggleContext now
-// 🦉 You can create a helper method to retrieve the context here. Thanks to that,
-// your context won't be exposed to the user
-// 💰 `const context = React.useContext(ToggleContext)`
-// 📜 https://reactjs.org/docs/hooks-reference.html#usecontext
+function useToggle() {
+  return React.useContext(ToggleContext)
+}
 
 function ToggleOn({children}) {
-	const context = React.useContext(ToggleContext)
-	const on = context.on
+  const { on } = useToggle()
   return on ? children : null
 }
 
 // 🐨 do the same thing to this that you did to the ToggleOn component
 function ToggleOff({children}) {
-	const context = React.useContext(ToggleContext)
-	const on = context.on
+  const { on } = useToggle()
   return on ? null : children
 }
 
 // 🐨 get `on` and `toggle` from the ToggleContext with `useContext`
 function ToggleButton(props) {
-	const context = React.useContext(ToggleContext)
-	const { on, toggle } = context
+  const {on, toggle} = useToggle()
   return <Switch on={on} onClick={toggle} {...props} />
 }
 

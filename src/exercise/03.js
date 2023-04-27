@@ -23,7 +23,11 @@ function Toggle({children}) {
 }
 
 function useToggle() {
-  return React.useContext(ToggleContext)
+	const context = React.useContext(ToggleContext)
+	if (context) {
+		return context
+	}
+	throw new Error('You need to use the `Toggle` component as parent')
 }
 
 function ToggleOn({children}) {
@@ -43,19 +47,21 @@ function ToggleButton(props) {
   return <Switch on={on} onClick={toggle} {...props} />
 }
 
-function App() {
-  return (
-    <div>
-      <Toggle>
-        <ToggleOn>The button is on</ToggleOn>
-        <ToggleOff>The button is off</ToggleOff>
-        <div>
-          <ToggleButton />
-        </div>
-      </Toggle>
-    </div>
-  )
-}
+const App = () => <ToggleButton />
+
+// function App() {
+//   return (
+//     <div>
+//       <Toggle>
+//         <ToggleOn>The button is on</ToggleOn>
+//         <ToggleOff>The button is off</ToggleOff>
+//         <div>
+//           <ToggleButton />
+//         </div>
+//       </Toggle>
+//     </div>
+//   )
+// }
 
 export default App
 

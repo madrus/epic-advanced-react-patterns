@@ -3,10 +3,13 @@ import * as React from 'react'
 // normally this is going to implement a similar pattern
 // learn more here: https://kcd.im/auth
 
+// ! no state in this context, so how is it updated?
+
 const AuthContext = React.createContext({
   user: {username: 'jakiechan', tagline: '', bio: ''},
 })
 AuthContext.displayName = 'AuthContext'
+
 const AuthProvider = ({user, ...props}) => (
   <AuthContext.Provider value={user} {...props} />
 )

@@ -4,8 +4,9 @@
 import * as React from 'react'
 import {Switch} from '../switch'
 
+
 function Toggle(props) {
-  const [on, setOn] = React.useState(false)
+	const [on, setOn] = React.useState(false)
   const toggle = () => setOn(!on)
 
   // 🐨 replace this with a call to React.Children.map and map each child in
@@ -14,11 +15,10 @@ function Toggle(props) {
   // 💰 React.Children.map(props.children, child => {/* return child clone here */})
   return React.Children.map(props.children, child => {
     /* return child clone here */
-    const newChild = React.cloneElement(child, {
-      on: typeof child.type !== 'string' ? on : undefined,
-      toggle: typeof child.type !== 'string' ? toggle : undefined,
-    })
-    // console.dir(newChild)
+		if (typeof child.type === 'string') {
+			return child
+		}
+    const newChild = React.cloneElement(child, {on, toggle})
     return newChild
   })
   // 📜 https://reactjs.org/docs/react-api.html#reactchildren
@@ -36,6 +36,10 @@ const ToggleOff = ({on, children}) => (on ? null : children)
 // Accepts `on` and `toggle` props and returns the <Switch /> with those props.
 const ToggleButton = ({on, toggle}) => <Switch on={on} onClick={toggle} />
 
+function MyToggleMessage({on, toggle}) {
+	return on ? 'the button is on yo!' : 'the button is off sooooooo...'
+}
+
 function App() {
   return (
     <div>
@@ -44,6 +48,7 @@ function App() {
         <ToggleOff>The button is off</ToggleOff>
         <span>Hello</span>
         <ToggleButton />
+				<MyToggleMessage />
       </Toggle>
     </div>
   )

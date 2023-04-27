@@ -73,36 +73,57 @@ function useUser() {
   return context
 }
 
+/**
+ * carry out a set of actions that together do all that is necessary
+ * for the complete user update
+ * @param {*} dispatch
+ * @param {*} user
+ * @param {*} updates
+ */
+async function updateUser(dispatch, user, updates) {
+  dispatch({type: 'start update', updates})
+  try {
+    const updatedUser = await userClient.updateUser(user, updates)
+    dispatch({type: 'finish update', updatedUser})
+    return updatedUser
+  } catch (error) {
+    dispatch({type: 'fail update', error})
+    throw error // or return Promise.reject(error)
+  }
+}
+
 // 🐨 add a function here called `updateUser`
 // Then go down to the `handleSubmit` from `UserSettings` and put that logic in
 // this function. It should accept: dispatch, user, and updates
 
-// export {UserProvider, useUser}
+// we will need this if we put our context in a separate file
+// export {UserProvider, useUser, updateUser}
 
 // src/screens/user-profile.js
-// import {UserProvider, useUser} from './context/user-context'
+// import {UserProvider, useUser, updateUser} from './context/user-context'
 function UserSettings() {
   const [{user, status, error}, userDispatch] = useUser()
 
   const isPending = status === 'pending'
   const isRejected = status === 'rejected'
 
-  const [formState, setFormState] = React.useState(user)
+  const [formUserState, setFormUserState] = React.useState(user)
 
-  const isChanged = !dequal(user, formState)
+  const isChanged = !dequal(user, formUserState)
 
   function handleChange(e) {
-    setFormState({...formState, [e.target.name]: e.target.value})
+    setFormUserState({...formUserState, [e.target.name]: e.target.value})
   }
 
   function handleSubmit(event) {
     event.preventDefault()
     // 🐨 move the following logic to the `updateUser` function you create above
-    userDispatch({type: 'start update', updates: formState})
-    userClient.updateUser(user, formState).then(
-      updatedUser => userDispatch({type: 'finish update', updatedUser}),
-      error => userDispatch({type: 'fail update', error}),
-    )
+    // userDispatch({type: 'start update', updates: formState})
+    updateUser(userDispatch, user, formUserState)
+    // userClient.updateUser(user, formState).then(
+    //   updatedUser => userDispatch({type: 'finish update', updatedUser}),
+    //   error => userDispatch({type: 'fail update', error}),
+    // )
   }
 
   return (
@@ -116,7 +137,7 @@ function UserSettings() {
           name="username"
           disabled
           readOnly
-          value={formState.username}
+          value={formUserState.username}
           style={{width: '100%'}}
         />
       </div>
@@ -127,7 +148,7 @@ function UserSettings() {
         <input
           id="tagline"
           name="tagline"
-          value={formState.tagline}
+          value={formUserState.tagline}
           onChange={handleChange}
           style={{width: '100%'}}
         />
@@ -139,7 +160,7 @@ function UserSettings() {
         <textarea
           id="bio"
           name="bio"
-          value={formState.bio}
+          value={formUserState.bio}
           onChange={handleChange}
           style={{width: '100%'}}
         />
@@ -148,7 +169,7 @@ function UserSettings() {
         <button
           type="button"
           onClick={() => {
-            setFormState(user)
+            setFormUserState(user)
             userDispatch({type: 'reset'})
           }}
           disabled={!isChanged || isPending}

@@ -77,10 +77,12 @@ function useUser() {
  * carry out a set of actions that together do all that is necessary
  * for the complete user update
  * @param {*} dispatch
+ * @param {*} user
+ * @param {*} updates
  */
-const updateUser = (dispatch, user, updates) => {
+function updateUser(dispatch, user, updates) {
   dispatch({type: 'start update', updates})
-  userClient.updateUser(user, updates).then(
+  return userClient.updateUser(user, updates).then(
     updatedUser => dispatch({type: 'finish update', updatedUser}),
     error => dispatch({type: 'fail update', error}),
   )
@@ -90,10 +92,11 @@ const updateUser = (dispatch, user, updates) => {
 // Then go down to the `handleSubmit` from `UserSettings` and put that logic in
 // this function. It should accept: dispatch, user, and updates
 
-// export {UserProvider, useUser}
+// we will need this if we put our context in a separate file
+// export {UserProvider, useUser, updateUser}
 
 // src/screens/user-profile.js
-// import {UserProvider, useUser} from './context/user-context'
+// import {UserProvider, useUser, updateUser} from './context/user-context'
 function UserSettings() {
   const [{user, status, error}, userDispatch] = useUser()
 

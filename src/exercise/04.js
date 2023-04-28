@@ -14,10 +14,7 @@ function useToggle() {
   const getTogglerProps = ({onClick, ...props} = {}) => {
     return {
       'aria-pressed': on,
-      onClick: () => {
-        Boolean(onClick) && onClick()
-        toggle()
-      },
+      onClick: callAll(onClick, toggle),
       ...props,
     }
   }
@@ -25,6 +22,12 @@ function useToggle() {
     on,
     toggle,
     getTogglerProps,
+  }
+}
+
+function callAll(...fns) {
+  return (...args) => {
+    fns.forEach(fn => fn && fn(...args))
   }
 }
 

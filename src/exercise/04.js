@@ -11,18 +11,21 @@ function useToggle() {
   // 🐨 Add a property called `togglerProps`. It should be an object that has
   // `aria-pressed` and `onClick` properties.
   // 💰 {'aria-pressed': on, onClick: toggle}
-  const getTogglerProps = props => {
-    const onClickMeshed = () => {
-      Boolean(props.onClick) && props.onClick()
-      toggle()
-    }
+  const getTogglerProps = ({onClick, ...props} = {}) => {
     return {
       'aria-pressed': on,
+      onClick: () => {
+        Boolean(onClick) && onClick()
+        toggle()
+      },
       ...props,
-      onClick: onClickMeshed,
     }
   }
-  return {on, toggle, getTogglerProps}
+  return {
+    on,
+    toggle,
+    getTogglerProps,
+  }
 }
 
 function App() {

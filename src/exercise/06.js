@@ -69,13 +69,15 @@ function useToggle({
   // `onChange(reducer({...state, on}, action), action)`
   // 💰 Also note that user's don't *have* to pass an `onChange` prop (it's not required)
   // so keep that in mind when you call it! How could you avoid calling it if it's not passed?
-  const dispatchWithOnChange = (action) => {
+  function dispatchWithOnChange(action) {
 		// if onIsControlled is false, call dispatch with that action
     !onIsControlled && dispatch(action)
 		// Then call `onChange` with our "suggested changes" and the action
-		// `onChange` used the same state and action to do the extra work
+		// `onChange` uses the new state we get from the reducer
+		// and the same action again to do the extra work
 		// related to `outside` changes targetting other components
-		onChange && onChange(reducer({...state, on}, action), action)
+		// we need to check if `onChanged` has been passed in as an argument
+		onChange?.(reducer({...state, on}, action), action)
   }
 
   // make these call `dispatchWithOnChange` instead

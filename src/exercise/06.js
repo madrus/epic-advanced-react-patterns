@@ -3,6 +3,12 @@
 
 import * as React from 'react'
 import {Switch} from '../switch'
+import warning from 'warning'
+
+const WARN_READ_ONLY =
+  'You provided a `value` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultValue`. Otherwise, set either `onChange` or `readOnly`.'
+const WARN_CONTROLLED_2_UNCONTROLLED = ''
+const WARN_UNCONTROLLED_2_CONTROLLED = ''
 
 const callAll =
   (...fns) =>
@@ -31,56 +37,24 @@ function toggleReducer(state, {type, initialState}) {
 function useToggle({
   initialOn = false,
   reducer = toggleReducer,
-  // 🐨 add an `onChange` prop.
   onChange,
-  // 🐨 add an `on` option here
-  // 💰 you can alias it to `controlledOn` to avoid "variable shadowing."
   on: controlledOn,
 } = {}) {
-	// `current` gets an alias `initialState`
   const {current: initialState} = React.useRef({on: initialOn})
   const [state, dispatch] = React.useReducer(reducer, initialState)
-  // 🐨 determine whether on is controlled and assign that to `onIsControlled`
-  // 💰 `controlledOn != null`
+
   const onIsControlled = controlledOn != null
-  // 🐨 Replace the next line with `const on = ...` which should be `controlledOn` if
-  // `onIsControlled`, otherwise, it should be `state.on`.
+  if (process.env.NODE_ENV !== 'production') {
+    // warning is visible if the condition is false
+    warning(!(onIsControlled && !onChange), WARN_READ_ONLY)
+  }
   const on = onIsControlled ? controlledOn : state.on
 
-  // We want to call `onChange` any time we need to make a state change, but we
-  // only want to call `dispatch` if `!onIsControlled` (otherwise we could get
-  // unnecessary renders).
-  // 🐨 To simplify things a bit, let's make a `dispatchWithOnChange` function
-  // right here. This will:
-  // 1. accept an action
-  // 2. if onIsControlled is false, call dispatch with that action
-  // 3. Then call `onChange` with our "suggested changes" and the action.
-  // 🦉 "Suggested changes" refers to: the changes we would make if we were
-  // managing the state ourselves. This is similar to how a controlled <input />
-  // `onChange` callback works. When your handler is called, you get an event
-  // which has information about the value input that _would_ be set to if that
-  // state were managed internally.
-  // So how do we determine our suggested changes? What code do we have to
-  // calculate the changes based on the `action` we have here? That's right!
-  // The reducer! So if we pass it the current state and the action, then it
-  // should return these "suggested changes!"
-  //
-  // 💰 Sorry if Olivia the Owl is cryptic. Here's what you need to do for that onChange call:
-  // `onChange(reducer({...state, on}, action), action)`
-  // 💰 Also note that user's don't *have* to pass an `onChange` prop (it's not required)
-  // so keep that in mind when you call it! How could you avoid calling it if it's not passed?
   function dispatchWithOnChange(action) {
-		// if onIsControlled is false, call dispatch with that action
     !onIsControlled && dispatch(action)
-		// Then call `onChange` with our "suggested changes" and the action
-		// `onChange` uses the new state we get from the reducer
-		// and the same action again to do the extra work
-		// related to `outside` changes targetting other components
-		// we need to check if `onChanged` has been passed in as an argument
-		onChange?.(reducer({...state, on}, action), action)
+    onChange?.(reducer({...state, on}, action), action)
   }
 
-  // make these call `dispatchWithOnChange` instead
   const toggle = () => dispatchWithOnChange({type: actionTypes.toggle})
   const reset = () =>
     dispatchWithOnChange({type: actionTypes.reset, initialState})
@@ -124,8 +98,8 @@ function App() {
   const [bothOn, setBothOn] = React.useState(false)
   const [timesClicked, setTimesClicked] = React.useState(0)
 
-	// handleToggleChange looks a bit like a reducer except that
-	// it does not return a new state
+  // handleToggleChange looks a bit like a reducer except that
+  // it does not return a new state
   function handleToggleChange(state, action) {
     if (action.type === actionTypes.toggle && timesClicked > 4) {
       return

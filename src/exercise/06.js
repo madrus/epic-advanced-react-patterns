@@ -7,8 +7,6 @@ import warning from 'warning'
 
 const WARN_READ_ONLY =
   'You provided a `value` prop to a form field without an `onChange` handler. This will render a read-only field. If the field should be mutable use `defaultValue`. Otherwise, set either `onChange` or `readOnly`.'
-const WARN_CONTROLLED_2_UNCONTROLLED = ''
-const WARN_UNCONTROLLED_2_CONTROLLED = ''
 
 const callAll =
   (...fns) =>
@@ -34,21 +32,53 @@ function toggleReducer(state, {type, initialState}) {
   }
 }
 
+function useControlledSwitchWarning(componentName, propName, propValue) {
+  const isControlled = propValue != null
+  const {current: wasControlled} = React.useRef(isControlled)
+  const un = !wasControlled && isControlled
+  const WARN_SWITCH = React.useMemo(
+    () =>
+      `\`${propName}\` is changing from ${un ? 'un' : ''}controlled to be ${
+        un ? '' : 'un'
+      }controlled. Components should not switch from ${
+        un ? 'un' : ''
+      }controlled to ${
+        un ? '' : 'un'
+      }controlled (or vice versa). Decide between using a controlled or uncontrolled \`${componentName}\` for the lifetime of the component. Check the \`on\` prop.`,
+    [componentName, propName, un],
+  )
+
+  React.useEffect(() => {
+    warning(!(isControlled !== wasControlled), WARN_SWITCH)
+  }, [isControlled, wasControlled, WARN_SWITCH])
+}
+
 function useToggle({
   initialOn = false,
   reducer = toggleReducer,
   onChange,
   on: controlledOn,
+  readOnly = false,
 } = {}) {
   const {current: initialState} = React.useRef({on: initialOn})
   const [state, dispatch] = React.useReducer(reducer, initialState)
 
+  // "!= null" is not null or undefined
   const onIsControlled = controlledOn != null
-  if (process.env.NODE_ENV !== 'production') {
-    // warning is visible if the condition is false
-    warning(!(onIsControlled && !onChange), WARN_READ_ONLY)
-  }
   const on = onIsControlled ? controlledOn : state.on
+
+  const hasOnChange = Boolean(onChange)
+  React.useEffect(() => {
+    const noWarning =
+      process.env.NODE_ENV === 'production' ||
+      !onIsControlled ||
+      hasOnChange ||
+      readOnly
+    // warning is visible if the condition is false
+    warning(noWarning, WARN_READ_ONLY)
+  }, [onIsControlled, hasOnChange, readOnly])
+
+  useControlledSwitchWarning('useToggle', 'on', controlledOn)
 
   function dispatchWithOnChange(action) {
     !onIsControlled && dispatch(action)
@@ -83,12 +113,13 @@ function useToggle({
   }
 }
 
-function Toggle({on: controlledOn, onChange, initialOn, reducer}) {
+function Toggle({on: controlledOn, onChange, initialOn, reducer, readOnly}) {
   const {on, getTogglerProps} = useToggle({
     on: controlledOn,
     onChange,
     initialOn,
     reducer,
+    readOnly,
   })
   const props = getTogglerProps({on})
   return <Switch {...props} />

@@ -52,7 +52,7 @@ function useControlledSwitchWarning(
   )
 
   React.useEffect(() => {
-		const noWarning = process.env.NODE_ENV === 'production' || isControlled === wasControlled
+		const noWarning = isControlled === wasControlled
     warning(noWarning, WARN_SWITCH)
   }, [isControlled, wasControlled, WARN_SWITCH])
 }
@@ -82,7 +82,6 @@ function useOnChangeReadOnlyWarning(
 
 	React.useEffect(() => {
     const noWarning =
-      process.env.NODE_ENV === 'production' ||
       !isControlled ||
       hasOnChange ||
       readOnly
@@ -105,17 +104,24 @@ function useToggle({
   const onIsControlled = controlledOn != null
   const on = onIsControlled ? controlledOn : state.on
 
-  useControlledSwitchWarning(controlledOn, 'on', 'useToggle')
-  useOnChangeReadOnlyWarning(
-		controlledOn,
-		'on',
-		'useToggle',
-		Boolean(onChange),
-		readOnly,
+	if (process.env.NODE_ENV !== 'production') {
+		// ! KCD finds it fine to break this rule of hooks here
+		// ! as `process.env.NODE_ENV` will never ever change
+		// ! for the whole lifetime of the application
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		useControlledSwitchWarning(controlledOn, 'on', 'useToggle')
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		useOnChangeReadOnlyWarning(
+			controlledOn,
+			'on',
+			'useToggle',
+			Boolean(onChange),
+			readOnly,
 		'readOnly',
 		'initialOn',
 		'onChange',
-	)
+		)
+	}
 
   function dispatchWithOnChange(action) {
     !onIsControlled && dispatch(action)
@@ -184,7 +190,7 @@ function App() {
   return (
     <div>
       <div>
-        <Toggle on={bothOn} onChange={handleToggleChange} />
+        <Toggle on={bothOn} />
         <Toggle on={bothOn} onChange={handleToggleChange} />
       </div>
       {timesClicked > 4 ? (

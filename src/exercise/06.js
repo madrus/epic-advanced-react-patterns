@@ -52,7 +52,8 @@ function useControlledSwitchWarning(
   )
 
   React.useEffect(() => {
-    warning(!(isControlled !== wasControlled), WARN_SWITCH)
+		const noWarning = process.env.NODE_ENV === 'production' || isControlled === wasControlled
+    warning(noWarning, WARN_SWITCH)
   }, [isControlled, wasControlled, WARN_SWITCH])
 }
 

@@ -30,11 +30,11 @@ function toggleReducer(state, {type, initialState}) {
 }
 
 function useControlledSwitchWarning(
-  constrolledPropValue,
+  controlledPropValue,
   controlledPropName,
   componentName,
 ) {
-  const isControlled = constrolledPropValue != null
+  const isControlled = controlledPropValue != null
   const {current: wasControlled} = React.useRef(isControlled)
   const un = !wasControlled && isControlled
   const WARN_SWITCH = React.useMemo(
